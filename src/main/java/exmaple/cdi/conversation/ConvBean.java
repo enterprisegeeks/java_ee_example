@@ -22,13 +22,11 @@ public class ConvBean implements Serializable{
     /**
      * カンバセーションの開始
      * 
-     * JSF以外の場合、IDを明示する必要がある。
-     * @param id ID
      */
-    public void begin(int id){
+    public void begin(){
         
         if (conv.isTransient()) {
-            conv.begin(id + "");
+            conv.begin();
         }
     }
     
@@ -51,6 +49,14 @@ public class ConvBean implements Serializable{
         return count;
     }
     
+    /**
+     * カンバセーションのIDを取得する。
+     * 
+     * beginを実施後、取得できるようになり、
+     * リクエストパラーメータに含める必要がある。
+     * 
+     * @return CID
+     */
     public String getCid() {
         return conv.getId();
     }

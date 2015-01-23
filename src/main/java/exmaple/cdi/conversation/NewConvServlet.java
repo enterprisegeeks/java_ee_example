@@ -20,12 +20,10 @@ public class NewConvServlet extends HttpServlet {
     @Inject
     private ConvBean cbean;
     
-    private AtomicInteger conversationIdCouner = new AtomicInteger(1);
-    
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         request.getSession();
-        cbean.begin(conversationIdCouner.incrementAndGet());
+        cbean.begin();
         
         request.getRequestDispatcher("conv.jsp").forward(request, response);
     }
