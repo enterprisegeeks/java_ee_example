@@ -13,7 +13,7 @@ import javax.persistence.Version;
 public class Team {
     
     @Id
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String name;
     
     @Version

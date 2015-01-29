@@ -1,7 +1,10 @@
 package exmaple.cdi.transaction;
 
+import example.cdi.bean.FlashMessage;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
@@ -19,29 +22,43 @@ import javax.servlet.http.HttpServletResponse;
 public class TeamNew extends HttpServlet {
 
     @Inject
+    private FlashMessage message;
+    
+    @Inject
     private SampleService service;
+    
     
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
         
         String name = request.getParameter("teamName");
 
         String result = "";
         try {
             service.newTeam(name);
-            result ="success";
+            result ="success.registerd=" + name;
         } catch(RuntimeException e) {
-            result ="roalback_by:" + e.getClass().getName()
-                    +"__caused:"+e.getCause().getClass().getName();
+            result ="roalback by " + e.getClass().getName() + "\n"
+                    +"stack trace:\n" +getStackTrace(e);
             System.out.println(e.getMessage());
-            e.printStackTrace();
         }catch (SampleException e) {
-            result ="checkedException:"+e.getClass().getName();
+            result = "registerd=" + name + "\n"
+                + "but, checkedException occuered:"+e.getClass().getName() + "\n" 
+                +"stack trace:\n" +getStackTrace(e);
             System.out.println(e.getMessage());
-            e.printStackTrace();
         }
+        message.setMessage(result);
+        response.sendRedirect("TeamInitial");
         
-        response.sendRedirect("TeamInitial?result="+result);
+        //request.getRequestDispatcher("TeamInitial").forward(request, response);
+    }
+    
+    private String getStackTrace(Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        return sw.toString();
     }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">

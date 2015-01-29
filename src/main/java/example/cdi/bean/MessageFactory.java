@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package exsample.cdi.bean;
+package example.cdi.bean;
 
 import java.io.IOException;
 import java.util.Collections;

@@ -1,5 +1,6 @@
 package exmaple.cdi.transaction;
 
+import example.cdi.bean.FlashMessage;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
@@ -15,13 +16,12 @@ import javax.servlet.http.HttpServletResponse;
 @WebServlet(name = "TeamInitial", urlPatterns = {"/TeamInitial"})
 public class TeamInitial extends HttpServlet {
 
+    
     @Inject
     private SampleService service;
     
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        
-     
         
         request.setAttribute("teams", service.allTeams());
         
