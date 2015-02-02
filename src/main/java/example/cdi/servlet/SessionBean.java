@@ -1,12 +1,13 @@
-package exmaple.cdi.servlet;
+package example.cdi.servlet;
 
-import javax.enterprise.context.RequestScoped;
+import java.io.Serializable;
+import javax.enterprise.context.SessionScoped;
 
 /**
  * リクエストbean
  */
-@RequestScoped
-public class RequestBean {
+@SessionScoped
+public class SessionBean implements Serializable{
     
     private int count = 0;
     

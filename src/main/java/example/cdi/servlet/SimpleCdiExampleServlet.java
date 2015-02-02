@@ -1,4 +1,4 @@
-package exmaple.cdi.servlet;
+package example.cdi.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;

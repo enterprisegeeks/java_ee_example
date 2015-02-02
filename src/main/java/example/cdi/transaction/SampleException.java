@@ -1,4 +1,4 @@
-package exmaple.cdi.transaction;
+package example.cdi.transaction;
 
 /**
  *

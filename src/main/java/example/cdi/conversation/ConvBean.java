@@ -1,4 +1,4 @@
-package exmaple.cdi.conversation;
+package example.cdi.conversation;
 
 import java.io.Serializable;
 import javax.annotation.PreDestroy;

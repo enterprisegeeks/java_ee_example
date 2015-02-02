@@ -1,27 +1,28 @@
-package exmaple.cdi.servlet2;
+package example.cdi.servlet2;
 
-import javax.enterprise.context.RequestScoped;
+import java.io.Serializable;
+import javax.enterprise.context.SessionScoped;
 import javax.inject.Inject;
 
 /**
  * リクエストbean
  */
-@RequestScoped
-public class RequestBean {
+@SessionScoped
+public class SessionBean implements Serializable{
     
     @Inject
     private DependentBean depBean;
     
     @Inject
-    private SessionBean sbean;
+    private RequestBean rbean;
     
     public String getHashCode(){
         return Integer.toHexString(this.hashCode());
     }
     
     public String format(){
-        return "this(Request):" + getHashCode() 
-                + " Session:" + sbean.getHashCode() 
+        return "this(Session):" + getHashCode() 
+                + " Request:" + rbean.getHashCode() 
                 + " Dependent:" + depBean.getHashCode();
     }
 }

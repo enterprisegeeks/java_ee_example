@@ -1,4 +1,4 @@
-package exmaple.cdi.conversation;
+package example.cdi.conversation;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,8 +12,8 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * CDIサンプル
  */
-@WebServlet(urlPatterns = {"/closeConversation"})
-public class CloseConvServlet extends HttpServlet {
+@WebServlet(urlPatterns = {"/conversationCountup"})
+public class CountUpServlet extends HttpServlet {
 
     // CDI Beanのインジェクション
     @Inject
@@ -21,10 +21,8 @@ public class CloseConvServlet extends HttpServlet {
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        cbean.countUp();
         
-        cbean.end();
-        
-        response.getWriter().close();
-        
+        request.getRequestDispatcher("conv.jsp").forward(request, response);
     }
 }

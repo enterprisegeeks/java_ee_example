@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package exmaple.cdi.transaction;
+package example.cdi.transaction;
 
 import example.entity.Team;
 import java.util.List;

@@ -1,4 +1,4 @@
-package exmaple.cdi.servlet2;
+package example.cdi.servlet2;
 
 import java.io.Serializable;
 import javax.enterprise.context.Dependent;

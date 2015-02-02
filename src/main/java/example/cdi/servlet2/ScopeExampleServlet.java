@@ -1,8 +1,7 @@
-package exmaple.cdi.conversation;
+package example.cdi.servlet2;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -13,18 +12,24 @@ import javax.servlet.http.HttpServletResponse;
 /**
  * CDIサンプル
  */
-@WebServlet(urlPatterns = {"/newConversaion"})
-public class NewConvServlet extends HttpServlet {
+@WebServlet(name = "scopeExample", urlPatterns = {"/scopeExample"})
+public class ScopeExampleServlet extends HttpServlet {
 
     // CDI Beanのインジェクション
     @Inject
-    private ConvBean cbean;
+    private RequestBean rbean;
+    @Inject
+    private SessionBean sbean;
+    @Inject
+    private DependentBean depBean;
     
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.getSession();
-        cbean.begin();
         
-        request.getRequestDispatcher("conv.jsp").forward(request, response);
+        try (PrintWriter out = response.getWriter()) {
+            out.println(rbean.format());
+            out.println(sbean.format());
+            out.println("DependentBean on Servlet:" + depBean.getHashCode());
+        }
     }
 }

@@ -1,4 +1,4 @@
-package exmaple.cdi.transaction;
+package example.cdi.transaction;
 
 import example.cdi.bean.FlashMessage;
 import java.io.IOException;
