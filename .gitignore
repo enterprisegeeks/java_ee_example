@@ -1,3 +1,4 @@
 nb-configuration.xml
 target/
 src/main/setup/glassfish-resources.xml
+derby.log
