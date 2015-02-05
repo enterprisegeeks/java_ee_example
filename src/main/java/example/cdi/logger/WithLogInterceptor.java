@@ -29,14 +29,6 @@ import javax.interceptor.InvocationContext;
 @Priority(Interceptor.Priority.APPLICATION) 
 public class WithLogInterceptor {
     
-    @AroundConstruct
-    public Object constoruct(InvocationContext ctx) throws Exception{
-        logger.info(ctx.getTarget() + " is construct");
-        return ctx.proceed();
-    }
-    
-    
-    
     // プロデューサー経由でロガー取得
     @Inject
     private Logger logger;
@@ -61,7 +53,6 @@ public class WithLogInterceptor {
         Object ret = null;
         try {
             // メソッドの実行
-            System.out.println("call by interceptor");
             ret = ic.proceed();
         } catch(Exception e) {
             // 例外のログを出したら、例外はそのままリスローする。
@@ -72,8 +63,5 @@ public class WithLogInterceptor {
         
         logger.info(() -> appName + ":" + classAndMethod + " end.");
         return ret;
-        
     }
-    
-    
 }
