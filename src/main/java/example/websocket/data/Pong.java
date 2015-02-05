@@ -9,7 +9,7 @@ package example.websocket.data;
  * PingPong応答
  */
 public class Pong {
-  
+    public final String name = "Server";
     public final String message = "Pong";
     
 }

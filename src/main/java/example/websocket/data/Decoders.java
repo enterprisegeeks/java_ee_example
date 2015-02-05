@@ -7,6 +7,7 @@ package example.websocket.data;
 
 import java.io.StringReader;
 import javax.json.Json;
+import javax.json.JsonObject;
 import javax.json.JsonReader;
 import javax.json.stream.JsonParsingException;
 import javax.websocket.DecodeException;
@@ -48,20 +49,25 @@ public abstract class Decoders {
         }
     }
     
-    /** JSON {message:"xxx"}のデコーダー */
+    /** JSON {name:"xx", message:"xxx"}のデコーダー */
     public static class MessageDecoder extends BaseTextDecoder<Message> {
         @Override
         public Message decode(String s) throws DecodeException {
             try(JsonReader reader = Json.createReader(new StringReader(s))){
-                return new Message(reader.readObject().getString("message"));
+                JsonObject obj = reader.readObject();
+                return new Message(
+                        obj.getString("name"),
+                        obj.getString("message"));
             }
         }
         @Override
         public boolean willDecode(String s) {
             System.out.println("MessageDecoder#willEncode");
-            // 単一のオブジェクトで、"message"プロパティを持たない場合、エンコード不可.
+            // 単一のオブジェクトで、"message", "name"プロパティを持たない場合、エンコード不可.
             try(JsonReader reader = Json.createReader(new StringReader(s))){
-                return !reader.readObject().isNull("message");
+                JsonObject obj = reader.readObject();
+                return !obj.isNull("message")
+                        || !obj.isNull("name");
             } catch(JsonParsingException e) {
                 return false;
             }

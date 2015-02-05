@@ -24,10 +24,11 @@ public abstract class Encoders {
         @Override
         public void init(EndpointConfig config) {}
         
-        protected String toMessageJson(String message) {
+        protected String toMessageJson(String name, String message) {
             StringWriter w = new StringWriter();
             JsonGenerator gen = Json.createGenerator(w);
             gen.writeStartObject()
+                .write("name", name)
                 .write("message", message)
                 .writeEnd().close();
             return w.toString();
@@ -37,14 +38,14 @@ public abstract class Encoders {
 
         @Override
         public String encode(Pong pong) throws EncodeException {
-            return toMessageJson(pong.message);
+            return toMessageJson(pong.name, pong.message);
         }
     }
     
     public static class MessageEncoder extends BaseTextEncorder<Message> {
         @Override
         public String encode(Message message) throws EncodeException {
-            return toMessageJson(message.message);
+            return toMessageJson(message.name, message.message);
         }
     }
 }

@@ -34,7 +34,7 @@ public class NotifySender {
         // 1分に一回通知を行う。event.fireを使うことで、どのオブジェクトがイベントを受け取るかは考慮不要になる。
         scheduler.scheduleAtFixedRate(() -> {
             String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
-            event.fire(new Message("notified at " + now));
+            event.fire(new Message("TimerBot", "notified at " + now));
         }, 0, 1, TimeUnit.MINUTES);
     }
     

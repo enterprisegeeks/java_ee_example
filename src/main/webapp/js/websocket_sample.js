@@ -3,7 +3,7 @@ $(function(){
         var res;
         try {
             var json = JSON.parse(data);
-            res = json.message;
+            res = "<b>" +json.name + "</b> said. "+ json.message;
         }catch(e) {
             res = data;
         }
@@ -19,6 +19,8 @@ $(function(){
     
     var ws = new WebSocket("ws://" + window.location.host + "/java_ee_example/websocket_sample");
     ws.onopen = function(){
+        
+    debugger;
         $("#ws").append("<li>server connect.</li>");
     };
     ws.onerror = function(event){ alert(event.data);};
@@ -36,9 +38,15 @@ $(function(){
         ws.send("{invalid}");}
     );
     $("#sendMessage").click(function(){
-            var data = {message:$("#message").val()};
-            var json = JSON.stringify(data);
-            ws.send(json);
+        var name = $("#name").val();
+        var message = $("#message").val();
+        if (!name || !message) {
+            alert("必須入力")
+            return;
+        }
+        var data = {name:name, message:message};
+        var json = JSON.stringify(data);
+        ws.send(json);
     });
     $("#upload").click(function(){
         var file = $("#file").get(0).files[0];
