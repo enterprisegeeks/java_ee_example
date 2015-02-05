@@ -3,17 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package example.websocket;
+package example.websocket.data;
 
 /**
- * 
+ *
+ * @author kentaro.maeda
  */
-public class Message {
-   
-    public final String message;
-    
-    public Message(String message) {
-        this.message = message;
-    }
-    
-}
+public interface TextBase {}
