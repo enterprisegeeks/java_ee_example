@@ -11,7 +11,9 @@ import javax.annotation.Priority;
 import javax.annotation.Resource;
 import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
+import javax.interceptor.AroundConstruct;
 import javax.interceptor.AroundInvoke;
+import javax.interceptor.AroundTimeout;
 import javax.interceptor.Interceptor;
 import javax.interceptor.InvocationContext;
 
@@ -26,6 +28,14 @@ import javax.interceptor.InvocationContext;
 // トランザクションインターセプターは、このインターセプターより先に動く。
 @Priority(Interceptor.Priority.APPLICATION) 
 public class WithLogInterceptor {
+    
+    @AroundConstruct
+    public Object constoruct(InvocationContext ctx) throws Exception{
+        logger.info(ctx.getTarget() + " is construct");
+        return ctx.proceed();
+    }
+    
+    
     
     // プロデューサー経由でロガー取得
     @Inject

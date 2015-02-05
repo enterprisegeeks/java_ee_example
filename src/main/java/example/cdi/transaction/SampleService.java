@@ -5,19 +5,15 @@
  */
 package example.cdi.transaction;
 
-import example.cdi.logger.WithLog;
+import example.cid.util.Service;
 import example.entity.Team;
 import java.util.List;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.transaction.Transactional;
 
 /**
  * サービス
  */
-@Transactional // このクラスのメソッドを起点にトランザクションを開始する。
-@RequestScoped
-@WithLog
+@Service
 public class SampleService {
     
     // DAOをインジェクション

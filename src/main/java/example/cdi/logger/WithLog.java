@@ -17,7 +17,7 @@ import javax.interceptor.InterceptorBinding;
  *
  */
 @Inherited
-@InterceptorBinding
+@InterceptorBinding // インターセプターのバインド
 @Retention(RUNTIME)
 @Target({METHOD, TYPE})
 public @interface WithLog {
