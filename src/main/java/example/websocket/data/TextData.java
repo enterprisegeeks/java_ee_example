@@ -6,10 +6,13 @@
 package example.websocket.data;
 
 /**
- * PingPong応答
+ *
+ * @author kentaro.maeda
  */
-public class Pong {
-    public final String name = "Server";
-    public final String message = "Pong";
+public class TextData implements TextBase{
+    public final String text;
     
+    public TextData(String text) {
+        this.text = text;
+    }
 }

@@ -3,7 +3,11 @@ $(function(){
         var res;
         try {
             var json = JSON.parse(data);
-            res = "<b>" +json.name + "</b> said. "+ json.message;
+            if (json.message) {
+                res = "<b>[" +json.name + "]</b> "+ json.message;
+            } else {
+                res = "<b>[" +json.name + "]</b> send file."+ json.fileName;
+            }
         }catch(e) {
             res = data;
         }
@@ -19,11 +23,10 @@ $(function(){
     
     var ws = new WebSocket("ws://" + window.location.host + "/java_ee_example/websocket_sample");
     ws.onopen = function(){
-        
-    debugger;
         $("#ws").append("<li>server connect.</li>");
+        // 一度通信しないと、受信できない場合がある。
+        ws.send("ping");
     };
-    ws.onerror = function(event){ alert(event.data);};
     ws.onmessage = function(data) {
         if (data.data instanceof Blob) {
             readBinary(data.data);
@@ -49,16 +52,25 @@ $(function(){
         ws.send(json);
     });
     $("#upload").click(function(){
+        var name = $("#name").val();
+        if (!name) {
+            alert("名前も入力");
+            return;
+        }
+        
         var file = $("#file").get(0).files[0];
-        if(!file){return;}
+        if(!file){    
+            alert("ファイルを選択");
+            return;
+        }
         if(!file.type.match('image.*')) {
             alert("画像のみ送信可能")
             return;
         }
-
+        ws.send(JSON.stringify({name:name, fileName:file.name, type:file.type}));
+        
         var reader = new FileReader();
         reader.onload = function(){
-        debugger;
             ws.send(reader.result);
         }
         reader.readAsArrayBuffer(file);

@@ -8,4 +8,4 @@ package example.websocket.data;
 /**
  * PingPong 送信
  */
-public class Ping {}
+public class Ping implements TextBase{}

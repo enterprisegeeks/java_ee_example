@@ -19,17 +19,17 @@ import javax.websocket.EndpointConfig;
  */
 public abstract class Decoders {
     // 初期化・破棄は何もしないデフォルト実装とする。
-    private static  abstract class BaseTextDecoder<T> implements Decoder.Text<T> {
+    private static  abstract class BaseTextDecoder<T extends TextBase> implements Decoder.Text<T> {
         @Override
         public void init(EndpointConfig config) {}
         @Override
         public void destroy() {}
     }
     /** 文字列デコーダ */
-    public static class StringDecoder extends BaseTextDecoder<String> {
+    public static class TextDataDecoder extends BaseTextDecoder<TextData> {
         @Override
-        public String decode(String s) throws DecodeException {
-            return s;
+        public TextData decode(String s) throws DecodeException {
+            return new TextData(s);
         }
         @Override
         public boolean willDecode(String s) {
@@ -44,7 +44,6 @@ public abstract class Decoders {
         }
         @Override
         public boolean willDecode(String s) {
-            System.out.println("PingDecoder#willEncode");
             return "PING".equalsIgnoreCase(s);
         }
     }
@@ -62,17 +61,40 @@ public abstract class Decoders {
         }
         @Override
         public boolean willDecode(String s) {
-            System.out.println("MessageDecoder#willEncode");
             // 単一のオブジェクトで、"message", "name"プロパティを持たない場合、エンコード不可.
             try(JsonReader reader = Json.createReader(new StringReader(s))){
                 JsonObject obj = reader.readObject();
-                return !obj.isNull("message")
-                        || !obj.isNull("name");
+                return obj.containsKey("message")
+                        && obj.containsKey("name");
             } catch(JsonParsingException e) {
                 return false;
             }
         }
     }
     
+    /** JSON {name:"xx", fileName:"xxx", type:"xx"}のデコーダー */
+    public static class FileAttrDecoder extends BaseTextDecoder<FileAttr> {
+        @Override
+        public FileAttr decode(String s) throws DecodeException {
+            try(JsonReader reader = Json.createReader(new StringReader(s))){
+                JsonObject obj = reader.readObject();
+                return new FileAttr(
+                        obj.getString("name"),
+                        obj.getString("fileName"),
+                        obj.getString("type"));
+            }
+        }
+        @Override
+        public boolean willDecode(String s) {
+            try(JsonReader reader = Json.createReader(new StringReader(s))){
+                JsonObject obj = reader.readObject();
+                return obj.containsKey("name")
+                        && obj.containsKey("fileName")
+                        && obj.containsKey("type");
+            } catch(JsonParsingException e) {
+                return false;
+            }
+        }
+    }
     
 }

@@ -34,18 +34,24 @@ public abstract class Encoders {
             return w.toString();
         }
     }
-    public static class PongEncoder extends BaseTextEncorder<Pong> {
-
-        @Override
-        public String encode(Pong pong) throws EncodeException {
-            return toMessageJson(pong.name, pong.message);
-        }
-    }
     
     public static class MessageEncoder extends BaseTextEncorder<Message> {
         @Override
         public String encode(Message message) throws EncodeException {
             return toMessageJson(message.name, message.message);
+        }
+    }
+    public static class FileAttrEncorder extends BaseTextEncorder<FileAttr> {
+        @Override
+        public String encode(FileAttr attr) throws EncodeException {
+            StringWriter w = new StringWriter();
+            JsonGenerator gen = Json.createGenerator(w);
+            gen.writeStartObject()
+                .write("name", attr.name)
+                .write("fileName", attr.fileName)
+                .write("type", attr.type)
+                .writeEnd().close();
+            return w.toString();
         }
     }
 }

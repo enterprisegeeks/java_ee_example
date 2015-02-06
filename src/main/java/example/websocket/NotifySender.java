@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 import javax.ejb.Singleton;
@@ -25,6 +26,9 @@ public class NotifySender {
     @Inject
     private Event<Message> event;
     
+    @Inject
+    private Logger logger;
+    
     /** Java EE7 から追加されたConcurrncy Utility。サーバーリソースとして登録が必要。 */
     @Resource(lookup = "concurrent/__defaultManagedScheduledExecutorService")
     private ScheduledExecutorService scheduler;
@@ -34,6 +38,7 @@ public class NotifySender {
         // 1分に一回通知を行う。event.fireを使うことで、どのオブジェクトがイベントを受け取るかは考慮不要になる。
         scheduler.scheduleAtFixedRate(() -> {
             String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+            logger.info(() -> "NotifySender executed." + now);
             event.fire(new Message("TimerBot", "notified at " + now));
         }, 0, 1, TimeUnit.MINUTES);
     }

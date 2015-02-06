@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>WebSocket 基本サンプル</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+        <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        <script type="text/javascript" src="js/websocket_simple.js"></script>
+        <style>
+            img{max-height: 200px;}
+        </style>
+    </head>
+    <body>
+        <div>
+            メッセージ:<input type="text" size="20" id="input" />
+            <input type="button" id="send" value="テキスト送信"/></div>
+       　<div>画像送信　<input type="file" id="file"  />
+           <input id="upload" type="button" value="画像送信"></div>
+        <hr>
+        <h2>受信メッセージ</h2>
+        <div style="border:solid black thin;height: 30px;width: 300px" id="text"></div>
+        <h2>受信ファイル</h2>
+        <img id="img">
+    </body>
+    
+</html>
