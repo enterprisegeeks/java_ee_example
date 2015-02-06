@@ -100,7 +100,7 @@ public class WebSocketSampleEndPoint {
     @OnMessage
     public void onBinaryFile(ByteBuffer buf, Session client) throws IOException, EncodeException {
         // 画像ファイル送信前にファイル情報用のメッセージが来ていない場合は、破棄。
-        if (uploadFile != null) {
+        if (uploadFile == null) {
             return;
         }
         
