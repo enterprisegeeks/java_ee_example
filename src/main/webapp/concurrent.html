@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Concurrency Util サンプル</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+        <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
+        <script type="text/javascript">
+        $(function(){
+            $("#calc").click(function(){
+                var qs = []
+                $("input[type='number']").each(function(i){
+                    qs.push($(this).attr("name") + "=" + $(this).val());
+                    $("#row" + i).text("");
+                })
+                $("#message").text("[]");
+                var sse = new EventSource("concurrent?" + qs.join("&"));
+                sse.addEventListener("close", function(event){
+                    $("#message").text("[" + event.data + "]")
+                    sse.close();
+                })
+                sse.onmessage = function(event){
+                    var data = JSON.parse(event.data);
+                    console.log(data);
+                    $("#row" + data.index).text(data.message)
+                };
+                sse.onerror = function(event){
+                    alert("error:" + event);
+                    sse.close();
+                }
+            });
+        });
+        </script>
+    </head>
+    <body>
+    <p>
+        各行それぞれの入力した数値(42以下)について並列でフィボナッチ数を計算する。
+    </p>
+        <form  >
+            <input type="button" id="calc" value="計算開始" />
+            <div id="message">[]</div>
+            <table style="border: solid black 1px;" >
+                <tr>
+                    <th>値</th><th>答</th>
+                </tr>
+                <tr>
+                    <td><input type="number" value="42" name="num0"/></td>
+                    <td id="row0"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="20" name="num1"/></td>
+                    <td id="row1"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="40" name="num2"/></td>
+                    <td id="row2"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="24" name="num3"/></td>
+                    <td id="row3"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="36" name="num4"/></td>
+                    <td id="row4"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="50" name="num5"/></td>
+                    <td id="row5"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="24" name="num6"/></td>
+                    <td id="row6"></td>
+                </tr>
+                <tr>
+                    <td><input type="number" value="39" name="num7"/></td>
+                    <td id="row7"></td>
+                </tr>
+            </table>
+        </form>
+    </body>
+</html>
