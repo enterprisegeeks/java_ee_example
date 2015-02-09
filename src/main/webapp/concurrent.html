@@ -7,7 +7,28 @@
         <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
         <script type="text/javascript">
         $(function(){
-            $("#calc").click(function(){
+            
+            
+            $("#calcSerialize").click(function(){
+                var qs = {};
+                $("input[type='number']").each(function(i){
+                    qs[$(this).attr("name")] = $(this).val();
+                    $("#row" + i).text("");
+                })
+                $("#message").text("[]");
+                
+                $.get("notConcurrent", qs).success(function(data){
+                    var json = JSON.parse(data);
+                    json.forEach(function(e){
+                        $("#row" + e.index).text(e.message)
+                    });
+                    $("#message").text("[計算終了]")
+                })
+                
+            });
+            
+            
+            $("#calcConcurrent").click(function(){
                 var qs = []
                 $("input[type='number']").each(function(i){
                     qs.push($(this).attr("name") + "=" + $(this).val());
@@ -37,7 +58,8 @@
         各行それぞれの入力した数値(42以下)について並列でフィボナッチ数を計算する。
     </p>
         <form  >
-            <input type="button" id="calc" value="計算開始" />
+            <input type="button" id="calcConcurrent" value="計算開始(並列)" />
+            <input type="button" id="calcSerialize" value="計算開始(直列)" />
             <div id="message">[]</div>
             <table style="border: solid black 1px;" >
                 <tr>
