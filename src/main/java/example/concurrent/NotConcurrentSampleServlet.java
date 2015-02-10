@@ -68,8 +68,8 @@ public class NotConcurrentSampleServlet extends HttpServlet {
            return makeJson(index, "形式不正");
         } else {
             long num = Long.parseLong(strNum);
-            if (num > 45) {
-                return makeJson( index, "45以下で入力");
+            if (num >= 45) {
+                return makeJson( index, "45未満で入力してください。");
             } else {
                 long answer = fib(num);
                 long time = System.currentTimeMillis() - start;

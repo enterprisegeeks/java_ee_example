@@ -14,6 +14,8 @@ import javax.annotation.Resource;
 import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.inject.Inject;
 import javax.servlet.AsyncContext;
+import javax.servlet.AsyncEvent;
+import javax.servlet.AsyncListener;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -29,13 +31,14 @@ public class ConcurrentSSEServlet extends NotConcurrentSampleServlet {
     private ManagedExecutorService executor;
 
     @Inject
-    Logger log;
+    private Logger log;
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
         response.setContentType("text/event-stream");
+        response.setHeader("Cache-Control", "no-cache");
         response.setCharacterEncoding("UTF-8");
 
         long start = System.currentTimeMillis();
@@ -44,10 +47,10 @@ public class ConcurrentSSEServlet extends NotConcurrentSampleServlet {
         Map<Integer, String> input = getNums(request);
         
         CountDownLatch latch = new CountDownLatch(input.size());
-        PrintWriter w = response.getWriter();
+        AsyncContext ac = request.startAsync();
+        PrintWriter w = ac.getResponse().getWriter();
 
         log.info(() -> "ConcurrentSSEServlet start:" + input);
-        AsyncContext ac = request.startAsync();
         // 並列処理開始
         for (Map.Entry<Integer, String> entry : input.entrySet()) {
             executor.execute(() -> {
@@ -55,7 +58,7 @@ public class ConcurrentSSEServlet extends NotConcurrentSampleServlet {
                 sendDataAndFlush(w, makeJson(index, "処理開始"));
                 String result = calc(index, entry.getValue());
                 sendDataAndFlush(w, result);
-                
+
                 latch.countDown();
             });
         }
@@ -63,20 +66,26 @@ public class ConcurrentSSEServlet extends NotConcurrentSampleServlet {
         executor.execute(() -> {
             try {
                 latch.await();
-            } catch (InterruptedException ex) {
+                long time = System.currentTimeMillis() - start;
+                w.write("event: close\ndata: 計算終了(" +time +"ms)\n\n");
+                w.checkError();
+                log.info(()-> "ConcurrentSSEServlet concurrent process end.");
+                w.close();
+                ac.complete();
+            } catch (InterruptedException e) {
             }
-            long time = System.currentTimeMillis() - start;
-            w.write("event: close\ndata: 計算終了(" +time +"ms)\n\n");
-            w.close();
-            ac.complete();
-            log.info(()-> "ConcurrentSSEServlet concurrent process end.");
         });
         log.info(() -> "ConcurrentSSEServlet end:");
     }
     
-    /** SSEイベントの即時反映のため、リクエスト送信後フラッシュする。 */
+    /** SSEイベントの即時反映のため、リクエスト送信後フラッシュする。
+     * スレッドからの取り合いでおかしな状況を防ぐため、同期化する。
+     */
     private void sendDataAndFlush(PrintWriter w, String message) {
-        w.write("data: " + message + "\n\n");
-        w.flush();
+        synchronized(w) {
+            w.write("data: " + message + "\n\n");
+            w.checkError();
+        }
+        
     }
 }
