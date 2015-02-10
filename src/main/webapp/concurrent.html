@@ -8,34 +8,49 @@
         <script type="text/javascript">
         $(function(){
             
-            
-            $("#calcSerialize").click(function(){
+            /** メッセージの初期化、入力値収集 */
+            var init = function(){
                 var qs = {};
+                
+                $("#message").text("[]");
                 $("input[type='number']").each(function(i){
                     qs[$(this).attr("name")] = $(this).val();
                     $("#row" + i).text("");
                 })
                 $("#message").text("[]");
+                return qs;
+            }
+            
+            $("#calcSerialize").click(function(){
+                var qs = init();
                 
                 $.get("notConcurrent", qs).success(function(data){
                     var json = JSON.parse(data);
-                    json.forEach(function(e){
+                    json.result.forEach(function(e){
                         $("#row" + e.index).text(e.message)
                     });
-                    $("#message").text("[計算終了]")
+                    $("#message").text("[" + json.message+"]")
                 })
-                
             });
             
             
             $("#calcConcurrent").click(function(){
-                var qs = []
-                $("input[type='number']").each(function(i){
-                    qs.push($(this).attr("name") + "=" + $(this).val());
-                    $("#row" + i).text("");
+                var qs = init();
+                
+                $.get("concurrent", qs).success(function(data){
+                    var json = JSON.parse(data);
+                    json.result.forEach(function(e){
+                        $("#row" + e.index).text(e.message)
+                    });
+                    $("#message").text("[" + json.message+"]")
                 })
-                $("#message").text("[]");
-                var sse = new EventSource("concurrent?" + qs.join("&"));
+            });
+            
+            $("#calcSSE").click(function(){
+                var qs = init();
+                var qsArray = [];
+                for(i in qs){qsArray.push(i+"="+qs[i])}
+                var sse = new EventSource("concurrentSSE?" + qsArray.join("&"));
                 sse.addEventListener("close", function(event){
                     $("#message").text("[" + event.data + "]")
                     sse.close();
@@ -55,11 +70,12 @@
     </head>
     <body>
     <p>
-        各行それぞれの入力した数値(42以下)について並列でフィボナッチ数を計算する。
+        各行それぞれの入力した数値(45以下)について並列でフィボナッチ数を計算する。
     </p>
         <form  >
-            <input type="button" id="calcConcurrent" value="計算開始(並列)" />
             <input type="button" id="calcSerialize" value="計算開始(直列)" />
+            <input type="button" id="calcConcurrent" value="計算開始(並列)" />
+            <input type="button" id="calcSSE" value="計算開始(並列・SSE)" />
             <div id="message">[]</div>
             <table style="border: solid black 1px;" >
                 <tr>

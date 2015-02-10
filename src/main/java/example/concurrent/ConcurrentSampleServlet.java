@@ -7,30 +7,27 @@ package example.concurrent;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigInteger;
-import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.annotation.Resource;
+import javax.enterprise.concurrent.ManagedExecutorService;
 import javax.inject.Inject;
-import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- *
+ * 並列処理
  */
-@WebServlet(name = "concurrent", urlPatterns = {"/concurrent"}, asyncSupported = true)
-public class ConcurrentSampleServlet extends HttpServlet {
+@WebServlet(name = "concurrent", urlPatterns = {"/concurrent"})
+public class ConcurrentSampleServlet extends NotConcurrentSampleServlet {
 
     @Resource(lookup = "concurrent/__defaultManagedExecutorService")
-    private ExecutorService executor;
+    private ManagedExecutorService executor;
 
     @Inject
     Logger log;
@@ -39,75 +36,51 @@ public class ConcurrentSampleServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
 
-        response.setContentType("text/event-stream");
+        response.setContentType("text/plain");
         response.setCharacterEncoding("UTF-8");
 
+        long start = System.currentTimeMillis();
+        
         // 入力値の取得
-        Enumeration<String> params = request.getParameterNames();
-        Map<Integer, String> input = new TreeMap<>();
-        while (params.hasMoreElements()) {
-            String param = params.nextElement();
-            System.out.println(param);
-            if (param.matches("^num[0-9]+$")) {
-                input.put(Integer.parseInt(param.substring(3)),
-                        request.getParameter(param));
-            }
-        }
-
-        CountDownLatch latch = new CountDownLatch(input.size());
+        Map<Integer, String> input = getNums(request);
+        
         PrintWriter w = response.getWriter();
 
         log.info(() -> "ConcurrentServlet start:" + input);
-        AsyncContext ac = request.startAsync();
-        // 並列処理開始
-        for (Map.Entry<Integer, String> entry : input.entrySet()) {
-            executor.execute(() -> {
-                long start = System.currentTimeMillis();
-                int index = entry.getKey();
-                String strNum = entry.getValue();
-
-                sendDataAndFlush(w, index, "処理開始 ");
-              
-                if (!strNum.matches("^[0-9]+$")) {
-                   sendDataAndFlush(w, index, "形式不正");
-                } else {
-                    long num = Long.parseLong(strNum);
-                    if (num > 45) {
-                        sendDataAndFlush(w, index, "45以下で入力");
-                    } else {
-                        long answer = fib(num);
-                        long time = System.currentTimeMillis() - start;
-                        sendDataAndFlush(w, index, "(" + time + "msで計算) fib(" + num + ")=" + answer);
-                    }
-                }
-                latch.countDown();
-                log.info(() -> index + " end.");
-            });
-        }
-        // 終了待ち合わせ
-        executor.execute(() -> {
-            try {
-                latch.await();
-            } catch (InterruptedException ex) {
-            }
-            w.write("event: close\ndata: 計算終了\n\n");
-            w.close();
-            ac.complete();
-            log.info(()-> "ConcurrentServlet concurrent process end.");
-        });
-        log.info(() -> "ConcurrentServlet end:");
+        // 並列処理のリストを取得する。
+        List<CompletableFuture<String>> futures = 
+            input.entrySet().stream().map(pair ->
+                CompletableFuture.supplyAsync(
+                    () -> calc(pair.getKey(), pair.getValue())
+                    , executor) // JavaEEコンテナのExecutorを必ず指定する。
+                //.thenApply( s -> {log.info("end:" + s);return s; }) //debug
+            ).collect(Collectors.toList());
+        
+        log.info("ready allof"); // 並列で上記のFutureの処理はすでに開始されている。
+        
+        // CompletableFuture.allOf を使用して、全てのFutureが終了後に行う処理を記述する。
+        // ここでは、処理結果を1つのリストにまとめているだけ。
+        List<String> results = 
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[]{}))
+                .thenApply(
+                    v -> futures.stream().map(CompletableFuture::join)
+                            .collect(Collectors.toList()))
+                .join();
+        
+        /* これでもいい?
+        List<String> results = futures.stream()
+                .map(fu -> fu.thenApplyAsync(Function.identity(), executor))
+                .map(fu -> fu.join())
+                .peek(s -> System.out.println("end:" + s))
+                .collect(Collectors.toList());
+        */
+        
+        long time = System.currentTimeMillis() - start;
+        String result = String.format("{\"message\":\"計算終了(%dms)\", \"result\":%s}",
+                time, results.stream().collect(Collectors.joining(",", "[", "]")));
+        w.write(result);
+        w.close();
+        log.info(() -> "ConcurrentServlet end:" + results);
     }
-    /** 効率の悪い実装 */
-    private long fib(long n) {
-        if (n <= 2){
-            return 1;
-        }
-        return fib(n-1) + fib(n-2);
-    }
-
-    private void sendDataAndFlush(PrintWriter w, int index, String message) {
-        String data = String.format("data: {\"index\":%d, \"message\":\"%s\"}\n\n", index, message);
-        w.write(data);
-        w.flush();
-    }
+    
 }
