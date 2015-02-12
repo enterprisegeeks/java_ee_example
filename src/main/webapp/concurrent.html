@@ -3,118 +3,140 @@
     <head>
         <title>Concurrency Util サンプル</title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
-        <script src="//code.jquery.com/jquery-migrate-1.2.1.min.js"></script>
-        <script type="text/javascript">
-        $(function(){
-            
-            /** メッセージの初期化、入力値収集 */
-            var init = function(){
-                var qs = {};
-                
-                $("#message").text("[]");
-                $("input[type='number']").each(function(i){
-                    qs[$(this).attr("name")] = $(this).val();
-                    $("#row" + i).text("");
-                })
-                $("#message").text("[]");
-                return qs;
-            }
-            
-            $("#calcSerialize").click(function(){
-                var qs = init();
-                
-                $.get("notConcurrent", qs).success(function(data){
-                    var json = JSON.parse(data);
-                    json.result.forEach(function(e){
-                        $("#row" + e.index).text(e.message)
-                    });
-                    $("#message").text("[" + json.message+"]")
-                })
-            });
-            
-            
-            $("#calcConcurrent").click(function(){
-                var qs = init();
-                
-                $.get("concurrent", qs).success(function(data){
-                    var json = JSON.parse(data);
-                    json.result.forEach(function(e){
-                        $("#row" + e.index).text(e.message)
-                    });
-                    $("#message").text("[" + json.message+"]")
-                })
-            });
-            
-            $("#calcSSE").click(function(){
-                var qs = init();
-                var qsArray = [];
-                for(i in qs){qsArray.push(i+"="+qs[i])}
-                var sse = new EventSource("concurrentSSE?" + qsArray.join("&"));
-                sse.addEventListener("close", function(event){
-                    $("#message").text("[" + event.data + "]")
-                    sse.close();
-                })
-                sse.onmessage = function(event){
-                    var data = JSON.parse(event.data);
-                    console.log(data);
-                    $("#row" + data.index).text(data.message)
-                };
-                sse.onerror = function(event){
-                    
-                    $("#message").text("[error on SSE]")
-                    sse.close();
-                }
-            });
-        });
-        </script>
+        <script src="http://fb.me/react-0.12.2.js"></script>
+        <script src="http://fb.me/JSXTransformer-0.12.2.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/superagent/0.15.7/superagent.min.js"></script>
+ 
     </head>
     <body>
     <p>
         各行それぞれの入力した数値(45未満)について並列でフィボナッチ数を計算する。
     </p>
-        <form  >
-            <input type="button" id="calcSerialize" value="計算開始(直列)" />
-            <input type="button" id="calcConcurrent" value="計算開始(並列)" />
-            <input type="button" id="calcSSE" value="計算開始(並列・SSE)" />
-            <div id="message">[]</div>
-            <table style="border: solid black 1px;" >
-                <tr>
-                    <th>値</th><th>答</th>
-                </tr>
-                <tr>
-                    <td><input type="number" value="44" name="num0"/></td>
-                    <td id="row0"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="20" name="num1"/></td>
-                    <td id="row1"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="40" name="num2"/></td>
-                    <td id="row2"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="44" name="num3"/></td>
-                    <td id="row3"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="36" name="num4"/></td>
-                    <td id="row4"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="50" name="num5"/></td>
-                    <td id="row5"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="1" name="num6"/></td>
-                    <td id="row6"></td>
-                </tr>
-                <tr>
-                    <td><input type="number" value="43" name="num7"/></td>
-                    <td id="row7"></td>
-                </tr>
-            </table>
-        </form>
+    <div id="component"></div>
+    <script type="text/jsx">
+        // declare child component.
+        var Row = React.createClass({
+            _onChange:function(e){
+                // ここのchangeNumは親から委譲された関数。
+                this.props.changeNum(this.props.numid, e.target.value);
+            },
+            render: function() {
+                return <tr>
+                         <td><input type="number" size="3" value={this.props.num} onChange={this._onChange} /></td>
+                        <td>{this.props.message}</td>
+                    </tr>;
+            }
+        });
+        // Use superAgent as Ajax client.
+        var request = window.superagent;
+        // Declare Parent Component
+        var Application = React.createClass({
+            getInitialState:function() {
+                return {
+                 message:"",
+                 rows: [ {id:0,num:44, message:""},
+                        {id:1,num:39, message:""},
+                        {id:2,num:29, message:""},
+                        {id:3,num:38, message:""},
+                        {id:4,num:42, message:""},
+                        {id:5,num:43, message:""},
+                        {id:6,num:46, message:""}
+                    ]
+                }
+            },
+            // AJAX送信前の処理
+            preRequest:function(){
+                var nums = {};
+                // DOMへの反映は、setState()で行われる。
+                this.state.message = "";
+                this.state.rows.forEach(function(r){
+                    r.message = "";
+                    nums["num" + r.id] = r.num;
+                });
+                this.setState(this.state);
+                return nums;
+            },
+            // AJAX送信後の処理
+            postRequest:function(body) {
+                var data = JSON.parse(body);
+                this.state.message = data.message;
+                var state = this.state;
+                data.result.forEach(function(r){
+                    state.rows[r.index].message = r.message;
+                });
+                this.setState(this.state);
+            },
+            // 子のコンポーネントで入力値に変更があった場合の処理。委譲する。
+            changeNum:function(index, num) {
+                this.state.rows[index].num = num;
+                this.setState(this.state);
+            },
+            // ボタンクリック時の処理。
+            onClickSerial:function(){
+                var nums = this.preRequest();
+                var that = this;
+                request.get("notConcurrent")
+                    .query(nums)
+                    .end(function(res){
+                        that.postRequest(res.text);
+                    });
+            },
+            onClickConcurrent:function(){
+                var nums = this.preRequest();
+                var that = this;
+                request.get("concurrent")
+                    .query(nums)
+                    .end(function(res){
+                        that.postRequest(res.text);
+                    });           
+            },
+            onClicSSE:function(){
+                var nums = this.preRequest();
+                var numsArray = [];
+                var that = this;
+                for(i in nums){numsArray.push(i+"="+nums[i])}
+                var sse = new EventSource("concurrentSSE?" + numsArray.join("&"));
+                sse.addEventListener("close", function(event){
+                    that.state.message = event.data;
+                    that.setState(that.state);
+                    sse.close();
+                });
+                sse.onmessage = function(event){
+                    var data = JSON.parse(event.data);
+                    that.state.rows[data.index].message = data.message;
+                    that.setState(that.state);
+                };
+                sse.onerror = function(event){
+                    that.state.massage = "error on SSE";
+                    that.setState(that.state);
+                    sse.close();
+                };
+            },
+            // 描画。
+            render : function(){
+                var that = this;
+                // テーブルの1行として、サブコンポーネントのリストを生成。
+                var rows = this.state.rows.map(function(r){
+                    return <Row num={r.num} message={r.message} key={r.id} numid={r.id} changeNum={that.changeNum} />
+                })
+                var style ={border:"solid black 1px"}; // styleはオブジェクトにする必要がある
+                // 上記の rows, styleやイベントハンドラを{}で設定することでDOMに組み込む。
+                return <div>
+                    <div>[{this.state.message}]</div>
+                    <button onClick={this.onClickSerial}>計算開始(直列)</button>
+                    <button onClick={this.onClickConcurrent}>計算開始(並列)</button>
+                    <button onClick={this.onClicSSE}>計算開始(並列・SSE)</button>
+                    <table style={style} >
+                        <tr><th>値</th><th>答</th></tr>
+                        {rows}
+                    </table>
+                </div>;
+            }
+            
+        });
+        // ここで、HTMLに反映。JSXのタグ名は、変数名と結びつく。
+        React.render(<Application />,document.getElementById('component'));
+        
+    </script>
     </body>
 </html>
