@@ -2,3 +2,4 @@ nb-configuration.xml
 target/
 src/main/setup/glassfish-resources.xml
 derby.log
+src/main/webapp/js/.module-cache/
