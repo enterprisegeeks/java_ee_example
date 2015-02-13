@@ -75,12 +75,12 @@ var Application = React.createClass({
                 that.postRequest(res.text);
             });           
     },
-    onClicSSE:function(){
+    doSEE:function(url){
         var nums = this.preRequest();
         var numsArray = [];
         var that = this;
         for(i in nums){numsArray.push(i+"="+nums[i])}
-        var sse = new EventSource("concurrentSSE?" + numsArray.join("&"));
+        var sse = new EventSource(url+"?" + numsArray.join("&"));
         sse.addEventListener("close", function(event){
             that.state.message = event.data;
             that.setState(that.state);
@@ -97,6 +97,13 @@ var Application = React.createClass({
             sse.close();
         };
     },
+    
+    onClickSerialSSE:function(){
+        this.doSEE("notConcurrentSSE");
+    },
+    onClickConcurrentSSE:function(){
+        this.doSEE("concurrentSSE");
+    },
     // 描画。
     render : function(){
         var that = this;
@@ -107,10 +114,15 @@ var Application = React.createClass({
         var style ={border:"solid black 1px"}; // styleはオブジェクトにする必要がある
         // 上記の rows, styleやイベントハンドラを{}で設定することでDOMに組み込む。
         return <div>
+            <div>
+                <button onClick={this.onClickSerial}>計算開始(直列)</button>
+                <button onClick={this.onClickSerialSSE}>計算開始(直列・SSE)</button>
+            </div>
+            <div>
+                <button onClick={this.onClickConcurrent}>計算開始(並列)</button>
+                <button onClick={this.onClickConcurrentSSE}>計算開始(並列・SSE)</button>
+            </div>
             <div>[{this.state.message}]</div>
-            <button onClick={this.onClickSerial}>計算開始(直列)</button>
-            <button onClick={this.onClickConcurrent}>計算開始(並列)</button>
-            <button onClick={this.onClicSSE}>計算開始(並列・SSE)</button>
             <table style={style} >
                 <tr><th>値</th><th>答</th></tr>
                 {rows}
