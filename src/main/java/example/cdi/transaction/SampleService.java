@@ -23,8 +23,8 @@ public class SampleService {
     /**
      * 新しいチームを登録する
      * 
-     * 例外を発生させるため、引数が "check"で始まる場合チェック例外
-     * "uncheck"の場合、非チェック例外を発生させる。
+     * 例外を発生させるため、引数が 2文字以下の場合チェック例外
+     * 空文字の場合、非チェック例外を発生させる。
      * @param teamName チーム名
      * @throws  SampleException checkxxが引数の場合
      */
@@ -35,11 +35,11 @@ public class SampleService {
         dao.register(t);
         
         // daoの実行後に、例外判定を行う。
-        if (teamName.startsWith("check")) {
-            throw new SampleException("check exception throws.");
-        }
-        if (teamName.equals("unchecked")) {
+        if (teamName.equals("")) {
             throw new RuntimeException("uncheck exception throws.");
+        }
+        if (teamName.length() <= 2) {
+            throw new SampleException("check exception throws.");
         }
     }
     
