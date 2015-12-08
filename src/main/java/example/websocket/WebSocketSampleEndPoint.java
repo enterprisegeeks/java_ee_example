@@ -114,7 +114,7 @@ public class WebSocketSampleEndPoint {
     
     /**
      * CDI イベントを受信し、接続中のセッション全てにメッセージを送信する。
-     * @param message メッセージ CDIイベントから実行するため、引数にObserversアノテーションを付与
+     * @param message メッセージ CDIイベントから実行するため、引数に@Observesアノテーションを付与
      */
     public void broadCast(@Observes Message message) {
         for (Session session : sessions) {
