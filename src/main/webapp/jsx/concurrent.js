@@ -1,4 +1,4 @@
-// declare child component.
+ｂ// declare child component.
 var Row = React.createClass({
     _onChange:function(e){
         // ここのchangeNumは親から委譲された関数。
@@ -124,7 +124,7 @@ var Application = React.createClass({
             </div>
             <div>[{this.state.message}]</div>
             <table style={style} >
-                <tr><th>値</th><th>答</th></tr>
+                <tr><th>値</th><th>結果</th></tr>
                 {rows}
             </table>
         </div>;

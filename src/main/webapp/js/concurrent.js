@@ -124,7 +124,7 @@ var Application = React.createClass({displayName: "Application",
             ), 
             React.createElement("div", null, "[", this.state.message, "]"), 
             React.createElement("table", {style: style}, 
-                React.createElement("tr", null, React.createElement("th", null, "値"), React.createElement("th", null, "答")), 
+                React.createElement("tr", null, React.createElement("th", null, "値"), React.createElement("th", null, "結果")), 
                 rows
             )
         );
